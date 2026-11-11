@@ -1,0 +1,8 @@
+# pySigma is pinned to 1.x because pysigma-backend-kusto 1.0.x does not yet support pySigma 2.x.
+# Revisit when the Kusto backend ships a pySigma 2.x release.
+pysigma==1.5.1
+pysigma-backend-splunk==2.1.0
+pysigma-backend-kusto==1.0.1
+pysigma-backend-sqlite==2.0.0
+pyyaml==6.0.3
+pytest==9.2.0
