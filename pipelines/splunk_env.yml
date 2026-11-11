@@ -1,0 +1,23 @@
+# Environment mapping: where each Sigma logsource lives in *your* Splunk.
+# Edit the source / index values to match your deployment.
+name: Splunk environment - Sysmon sources
+priority: 30
+transformations:
+  - id: splunk_sysmon_process_creation
+    type: add_condition
+    conditions:
+      source: 'XmlWinEventLog:Microsoft-Windows-Sysmon/Operational'
+      EventCode: 1
+    rule_conditions:
+      - type: logsource
+        category: process_creation
+        product: windows
+  - id: splunk_sysmon_process_access
+    type: add_condition
+    conditions:
+      source: 'XmlWinEventLog:Microsoft-Windows-Sysmon/Operational'
+      EventCode: 10
+    rule_conditions:
+      - type: logsource
+        category: process_access
+        product: windows
