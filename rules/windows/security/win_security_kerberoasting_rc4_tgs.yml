@@ -1,0 +1,30 @@
+title: Possible Kerberoasting - RC4 Service Ticket Request
+id: 928bb0e3-49d4-4104-b0be-570153938a1f
+status: experimental
+description: >
+    Detects successful Kerberos service ticket requests (Event ID 4769) using RC4 encryption
+    for non-machine, non-krbtgt service accounts. Indicative of Kerberoasting.
+references:
+    - https://attack.mitre.org/techniques/T1558/003/
+author: George Yooku Sackey
+date: 2026-11-11
+tags:
+    - attack.credential-access
+    - attack.t1558.003
+logsource:
+    product: windows
+    service: security
+detection:
+    selection:
+        EventID: 4769
+        TicketEncryptionType: '0x17'
+        Status: '0x0'
+    filter_machine_accounts:
+        ServiceName|endswith: '$'
+    filter_krbtgt:
+        ServiceName: 'krbtgt'
+    condition: selection and not 1 of filter_*
+falsepositives:
+    - Legacy applications or hosts that only support RC4
+    - Domains where AES enforcement is incomplete
+level: medium
