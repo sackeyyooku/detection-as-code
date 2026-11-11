@@ -1,0 +1,27 @@
+positive:
+  - name: dumper from public folder with full access (upper-case mask)
+    event:
+      SourceImage: 'C:\Users\Public\procdump64.exe'
+      TargetImage: 'C:\Windows\System32\lsass.exe'
+      GrantedAccess: '0x1FFFFF'
+  - name: temp binary with 0x1410 read mask
+    event:
+      SourceImage: 'C:\Temp\x.exe'
+      TargetImage: 'C:\Windows\System32\lsass.exe'
+      GrantedAccess: '0x1410'
+negative:
+  - name: system component (filtered)
+    event:
+      SourceImage: 'C:\Windows\System32\wbem\WmiPrvSE.exe'
+      TargetImage: 'C:\Windows\System32\lsass.exe'
+      GrantedAccess: '0x1410'
+  - name: low-privilege access mask
+    event:
+      SourceImage: 'C:\Temp\tool.exe'
+      TargetImage: 'C:\Windows\System32\lsass.exe'
+      GrantedAccess: '0x0400'
+  - name: target is not lsass
+    event:
+      SourceImage: 'C:\Temp\x.exe'
+      TargetImage: 'C:\Windows\System32\notepad.exe'
+      GrantedAccess: '0x1fffff'

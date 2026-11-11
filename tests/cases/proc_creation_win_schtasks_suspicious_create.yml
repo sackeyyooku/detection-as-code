@@ -1,0 +1,22 @@
+positive:
+  - name: task pointing at AppData payload
+    event:
+      Image: 'C:\Windows\System32\schtasks.exe'
+      OriginalFileName: 'schtasks.exe'
+      CommandLine: 'schtasks.exe /create /tn Updater /tr C:\Users\bob\AppData\Roaming\upd.exe /sc onlogon'
+  - name: task launching PowerShell
+    event:
+      Image: 'C:\Windows\System32\schtasks.exe'
+      OriginalFileName: 'schtasks.exe'
+      CommandLine: 'schtasks.exe /create /tn Backup /tr "powershell -w hidden -c ." /sc daily'
+negative:
+  - name: querying tasks
+    event:
+      Image: 'C:\Windows\System32\schtasks.exe'
+      OriginalFileName: 'schtasks.exe'
+      CommandLine: 'schtasks.exe /query /fo LIST'
+  - name: legitimate task in Program Files
+    event:
+      Image: 'C:\Windows\System32\schtasks.exe'
+      OriginalFileName: 'schtasks.exe'
+      CommandLine: 'schtasks.exe /create /tn NightlyBackup /tr "C:\Program Files\Backup\run.exe" /sc daily'

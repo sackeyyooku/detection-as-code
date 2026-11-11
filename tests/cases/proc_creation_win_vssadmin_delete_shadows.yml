@@ -1,0 +1,22 @@
+positive:
+  - name: delete all shadows quietly
+    event:
+      Image: 'C:\Windows\System32\vssadmin.exe'
+      OriginalFileName: 'VSSADMIN.EXE'
+      CommandLine: 'vssadmin.exe delete shadows /all /quiet'
+  - name: renamed binary with mixed-case arguments
+    event:
+      Image: 'C:\Temp\x.exe'
+      OriginalFileName: 'VSSADMIN.EXE'
+      CommandLine: 'x.exe Delete Shadows /For=C: /Oldest'
+negative:
+  - name: listing shadows is benign
+    event:
+      Image: 'C:\Windows\System32\vssadmin.exe'
+      OriginalFileName: 'VSSADMIN.EXE'
+      CommandLine: 'vssadmin.exe list shadows'
+  - name: unrelated process with similar words
+    event:
+      Image: 'C:\Windows\System32\notepad.exe'
+      OriginalFileName: 'NOTEPAD.EXE'
+      CommandLine: 'notepad.exe delete_shadows_notes.txt'

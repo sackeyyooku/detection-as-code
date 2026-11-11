@@ -1,0 +1,15 @@
+positive:
+  - name: Security log cleared by an administrator account
+    event:
+      EventID: 1102
+      Provider_Name: 'Microsoft-Windows-Eventlog'
+      SubjectUserName: 'admin'
+negative:
+  - name: ordinary logon event
+    event:
+      EventID: 4624
+      Provider_Name: 'Microsoft-Windows-Security-Auditing'
+  - name: 1102 from an unrelated provider
+    event:
+      EventID: 1102
+      Provider_Name: 'Some-Other-Provider'

@@ -1,0 +1,27 @@
+positive:
+  - name: long -enc flag with encoded payload
+    event:
+      Image: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
+      OriginalFileName: 'PowerShell.EXE'
+      CommandLine: 'powershell.exe -NoProfile -WindowStyle Hidden -enc JABhAD0AMQA='
+  - name: short -e flag on pwsh
+    event:
+      Image: 'C:\Program Files\PowerShell\7\pwsh.exe'
+      OriginalFileName: 'pwsh.dll'
+      CommandLine: 'pwsh.exe -e JABhAD0AMQA='
+  - name: renamed PowerShell binary caught by OriginalFileName
+    event:
+      Image: 'C:\Users\Public\svchost_update.exe'
+      OriginalFileName: 'PowerShell.EXE'
+      CommandLine: 'svchost_update.exe -ec JABhAD0AMQA='
+negative:
+  - name: ordinary script execution
+    event:
+      Image: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
+      OriginalFileName: 'PowerShell.EXE'
+      CommandLine: 'powershell.exe -ExecutionPolicy Bypass -File C:\Scripts\backup.ps1'
+  - name: non-PowerShell tool that uses an -e flag
+    event:
+      Image: 'C:\Program Files\OpenSSL\bin\openssl.exe'
+      OriginalFileName: 'openssl.exe'
+      CommandLine: 'openssl.exe enc -aes-256-cbc -e -in a.txt -out a.bin'

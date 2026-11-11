@@ -1,0 +1,38 @@
+positive:
+  - name: RC4 ticket for a user service account
+    event:
+      EventID: 4769
+      TicketEncryptionType: '0x17'
+      Status: '0x0'
+      ServiceName: 'svc_sql'
+  - name: RC4 ticket for an SPN-bearing service account
+    event:
+      EventID: 4769
+      TicketEncryptionType: '0x17'
+      Status: '0x0'
+      ServiceName: 'svc_backup'
+negative:
+  - name: machine account (filtered)
+    event:
+      EventID: 4769
+      TicketEncryptionType: '0x17'
+      Status: '0x0'
+      ServiceName: 'DC01$'
+  - name: krbtgt (filtered)
+    event:
+      EventID: 4769
+      TicketEncryptionType: '0x17'
+      Status: '0x0'
+      ServiceName: 'krbtgt'
+  - name: AES ticket is the healthy baseline
+    event:
+      EventID: 4769
+      TicketEncryptionType: '0x12'
+      Status: '0x0'
+      ServiceName: 'svc_sql'
+  - name: failed ticket request
+    event:
+      EventID: 4769
+      TicketEncryptionType: '0x17'
+      Status: '0x1b'
+      ServiceName: 'svc_sql'

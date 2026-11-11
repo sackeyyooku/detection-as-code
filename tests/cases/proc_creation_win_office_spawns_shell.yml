@@ -1,0 +1,18 @@
+positive:
+  - name: Word spawns cmd
+    event:
+      ParentImage: 'C:\Program Files\Microsoft Office\root\Office16\WINWORD.EXE'
+      Image: 'C:\Windows\System32\cmd.exe'
+  - name: Excel spawns mshta
+    event:
+      ParentImage: 'C:\Program Files\Microsoft Office\root\Office16\EXCEL.EXE'
+      Image: 'C:\Windows\System32\mshta.exe'
+negative:
+  - name: Explorer launching PowerShell is normal
+    event:
+      ParentImage: 'C:\Windows\explorer.exe'
+      Image: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
+  - name: Word launching the print helper
+    event:
+      ParentImage: 'C:\Program Files\Microsoft Office\root\Office16\WINWORD.EXE'
+      Image: 'C:\Windows\System32\splwow64.exe'

