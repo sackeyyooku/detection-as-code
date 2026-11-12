@@ -4,7 +4,7 @@ A CI/CD pipeline for security detections. Sigma rules are written once, **tested
 events and real attack telemetry**, compiled to **Splunk SPL** and **KQL**, and mapped to **MITRE ATT&CK**,
 with every change gated by automated checks.
 
-![ci](https://github.com/<your-username>/detection-as-code/actions/workflows/ci.yml/badge.svg)
+![ci](https://github.com/sackeyyooku/detection-as-code/actions/workflows/ci.yml/badge.svg)
 
 ## The problem
 
