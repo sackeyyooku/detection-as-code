@@ -61,3 +61,11 @@ def attack_tags(raw: dict) -> tuple[list[str], list[str]]:
         else:
             tactics.append(body)
     return tactics, techniques
+
+
+SAMPLES_CACHE = ROOT / ".cache" / "evtx-samples"
+TELEMETRY_MANIFEST = ROOT / "tests" / "telemetry" / "manifest.yml"
+
+
+def load_manifest() -> dict:
+    return yaml.safe_load(TELEMETRY_MANIFEST.read_text(encoding="utf-8"))

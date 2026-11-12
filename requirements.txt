@@ -5,4 +5,5 @@ pysigma-backend-splunk==2.1.0
 pysigma-backend-kusto==1.0.1
 pysigma-backend-sqlite==2.0.0
 pyyaml==6.0.3
+evtx==0.15.0
 pytest==9.2.0

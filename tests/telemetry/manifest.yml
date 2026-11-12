@@ -1,0 +1,89 @@
+# Real-telemetry regression samples.
+# must_fire: rules that have to alert on the sample.
+# also_fires: other alerts that are expected and reviewed (anything else fails the test).
+# win_security_event_log_cleared is always tolerated: the dataset's authors cleared the Security
+# log before many captures, so a genuine Event 1102 is present in many samples.
+dataset:
+  repo: sbousseaden/EVTX-ATTACK-SAMPLES
+  commit: 4ceed2f4706daf601c212a8f91c113dd85349a2c
+  license: GPL-3.0 (samples are fetched at test time, never redistributed here)
+samples:
+- path: Credential Access/sysmon_10_lsass_mimikatz_sekurlsa_logonpasswords.evtx
+  sha256: 9a1689574ed08c1fb18e7ff3f3bed612109aedcb7bf8efbf3537d756e669e96f
+  must_fire:
+  - proc_access_win_lsass_suspicious_access
+  note: Mimikatz sekurlsa::logonpasswords
+- path: Credential Access/sysmon_10_11_lsass_memdump.evtx
+  sha256: 915f0859251552b6c33efc32f6184d2c25419c5859852124a7f14ed6ec1a3723
+  must_fire:
+  - proc_access_win_lsass_suspicious_access
+  note: Procdump LSASS dump
+- path: Credential Access/sysmon_10_11_outlfank_dumpert_and_andrewspecial_memdump.evtx
+  sha256: f0d11bf8e186947aaf64c3a57debb1b665f518e2dab13acdaafb30c7e8d262af
+  must_fire:
+  - proc_access_win_lsass_suspicious_access
+  note: Dumpert / rundll32 memdump; regression for the System32 allow-list hole
+- path: Credential Access/babyshark_mimikatz_powershell.evtx
+  sha256: 3747c33a60a32142bf4e30bf023f155b2c0d6e7a018bce8b7bafbd5aa7ec109c
+  must_fire:
+  - proc_access_win_lsass_suspicious_access
+  note: Invoke-Mimikatz from System32 PowerShell; regression for the System32 allow-list hole
+- path: Credential Access/sysmon_10_1_memdump_comsvcs_minidump.evtx
+  sha256: d1bf591cabf7d21f49936150bfaf433da7665211ba3fd00bc806f4912a6f96b4
+  must_fire:
+  - proc_creation_win_comsvcs_minidump
+  note: rundll32 comsvcs.dll MiniDump
+- path: Credential Access/discovery_sysmon_1_iis_pwd_and_config_discovery_appcmd.evtx
+  sha256: 5388d3281a902a1f3cc087697589145b7de6abdbbc0dc716abd6a702c44bb106
+  must_fire:
+  - proc_creation_win_powershell_encoded_command
+  note: PowerShell -nop -noni -enc payload
+- path: AutomatedTestingTools/PanacheSysmon_vs_AtomicRedTeam01.evtx
+  sha256: 6903dff9f218fa027c704c8c445b74e08b952c8d71be79bd0327f1e792d4aa01
+  must_fire:
+  - proc_creation_win_vssadmin_delete_shadows
+  - proc_access_win_lsass_suspicious_access
+  - proc_creation_win_regsvr32_remote_scriptlet
+  note: 'Atomic Red Team run: shadow copy deletion and PowerShell LSASS access; regsvr32 scriptlet test
+    (T1117 in Atomic Red Team)'
+- path: AutomatedTestingTools/panache_sysmon_vs_EDRTestingScript.evtx
+  sha256: 9c1371a0632de15095b6ffe2e38991b764d4beaddb1722178e93aa476f83f52f
+  must_fire:
+  - proc_creation_win_certutil_urlcache_download
+  - proc_creation_win_regsvr32_remote_scriptlet
+  note: certutil -urlcache download cradle; regsvr32 scriptlet test
+- path: AutomatedTestingTools/Malware/rundll32_cmd_schtask.evtx
+  sha256: 4ee3de8ac48d973a800666c3e1d757d11eaf9a960e7144db566bb51d903b4b09
+  must_fire:
+  - proc_creation_win_schtasks_suspicious_create
+  note: Scheduled task persistence from a temp XML file
+- path: Execution/exec_persist_rundll32_mshta_scheduledtask_sysmon_1_3_11.evtx
+  sha256: fb5679aec77dc45a35902f705b513811dfea0f2f93c9c8503464a20270c3222f
+  must_fire:
+  - proc_creation_win_schtasks_suspicious_create
+  note: Scheduled task running mshta against a remote URL
+- path: AutomatedTestingTools/Malware/sideloading_uacbypass_rundll32_injection_c2.evtx
+  sha256: ead8a4c6c822da22ac98c6f16123090f0eb30955666c63f9acaa0d51561925da
+  must_fire:
+  - proc_creation_win_office_spawns_shell
+  note: Sideloaded WINWORD.exe spawning cmd
+- path: Defense Evasion/DE_1102_security_log_cleared.evtx
+  sha256: a0615707b547a2ac254688fd725c3c590f62440fc9b7947c2843dd40498a39e8
+  must_fire:
+  - win_security_event_log_cleared
+  note: Security log cleared (Event 1102)
+- path: Execution/exec_sysmon_lobin_regsvr32_sct.evtx
+  sha256: d6978888a7dead4523c01df417aa7ea6ad2599a5bbf1acd05d89882aac956442
+  must_fire:
+  - proc_creation_win_regsvr32_remote_scriptlet
+  note: Squiblydoo via regsvr32 scrobj.dll
+- path: Execution/exec_sysmon_1_lolbin_renamed_regsvr32_scrobj.evtx
+  sha256: 4baa0bc603d1e8b50212e60931431c5c6f7bf35fcdedb80bf6ab1fc77907ec04
+  must_fire:
+  - proc_creation_win_regsvr32_remote_scriptlet
+  note: Squiblydoo via a renamed regsvr32 copy
+- path: Other/maldoc_mshta_via_shellbrowserwind_rundll32.evtx
+  sha256: fd59102d39891a81ee0e002bec2a855998c57e6439a10608fd9f4b12861e34a5
+  must_fire:
+  - proc_creation_win_rundll32_non_dll_file
+  note: rundll32 loading a .jpg payload
