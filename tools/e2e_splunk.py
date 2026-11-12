@@ -9,6 +9,11 @@ What this proves: the generated SPL parses, quotes/escapes correctly and has the
 in Splunk. What it does NOT prove: that a Splunk Windows/Sysmon add-on extracts the same field names in
 production. Events here are JSON, so field names are taken exactly as the rules use them.
 
+Event formats: Sysmon-style events are JSON (field names exactly as the rules use them). Windows Security
+events use the classic WinEventLog text format and are field-extracted by Splunk's own built-in rules,
+as in production, which is what exposed the Sigma-vs-Splunk field-name differences handled in
+pipelines/splunk_env.yml.
+
 Usage:  docker compose -f e2e/docker-compose.yml up -d   then   python -m tools.e2e_splunk
 """
 from __future__ import annotations
@@ -93,9 +98,9 @@ class SplunkClient:
         content = info["entry"][0]["content"]
         return f"{content.get('version', '?')} (build {content.get('build', '?')})"
 
-    def ingest(self, fields: dict, source: str, host: str) -> None:
-        params = {"index": INDEX, "source": source, "sourcetype": SOURCETYPE, "host": host}
-        body = json.dumps(fields).encode("utf-8")
+    def ingest(self, payload: str, source: str, sourcetype: str, host: str) -> None:
+        params = {"index": INDEX, "source": source, "sourcetype": sourcetype, "host": host}
+        body = payload.encode("utf-8")
         for attempt in range(5):
             try:
                 self._request("POST", "/services/receivers/simple", params, body, "text/plain")
@@ -117,7 +122,7 @@ class SplunkClient:
         raise TimeoutError(f"only {seen}/{expected} events became searchable")
 
     def search(self, spl: str) -> list[dict]:
-        return self._search(f"{spl} | table TestId")
+        return self._search(f"{spl} | eval TestId=coalesce(TestId, ComputerName) | table TestId")
 
 
 # --------------------------------------------------------------------------- test data
@@ -128,6 +133,8 @@ class E2EEvent:
     kind: str   # positive | negative
     name: str
     source: str
+    sourcetype: str
+    payload: str
     fields: dict
 
 
@@ -137,6 +144,41 @@ class Probe:
     description: str
     query: str
     events: tuple  # (label, source, fields, expected_to_match)
+
+
+CLASSIC_SOURCES = {"WinEventLog:Security"}
+# Sigma (Event Viewer XML) field -> where it lives in a classic WinEventLog text event
+CLASSIC_HEADER_FIELDS = {"EventID": "EventCode", "Provider_Name": "SourceName"}
+CLASSIC_MESSAGE_FIELDS = {
+    "ServiceName": "Service Name",
+    "TicketEncryptionType": "Ticket Encryption Type",
+    "Status": "Failure Code",
+    "SubjectUserName": "Account Name",
+}
+
+
+def render_classic(case_fields: dict, test_id: str, record_number: int) -> str:
+    """Render a Sigma-named event as classic WinEventLog text (what Splunk's Windows inputs produce).
+
+    The test id travels in ComputerName, a field Splunk's built-in extraction is known to populate.
+    """
+    header = {
+        "LogName": "Security", "EventType": "0", "ComputerName": test_id, "Type": "Information",
+        "RecordNumber": str(record_number), "Keywords": "Audit Success", "OpCode": "Info",
+    }
+    message = []
+    for key, value in case_fields.items():
+        if key in CLASSIC_HEADER_FIELDS:
+            header[CLASSIC_HEADER_FIELDS[key]] = value
+        elif key in CLASSIC_MESSAGE_FIELDS:
+            message.append(f"\t{CLASSIC_MESSAGE_FIELDS[key]}:\t\t{value}")
+        else:
+            raise ValueError(f"no classic WinEventLog mapping for field {key!r}; add it to CLASSIC_* in e2e_splunk.py")
+    header.setdefault("SourceName", "Microsoft Windows security auditing.")
+    stamp = datetime.now(timezone.utc).strftime("%m/%d/%Y %I:%M:%S %p")
+    lines = [stamp] + [f"{k}={v}" for k, v in header.items()]
+    lines += ["Message=Test event.", "Details:"] + message
+    return "\n".join(lines)
 
 
 def compile_spl(rule_path) -> str:
@@ -156,14 +198,21 @@ def build_rule_events(run_id: str) -> tuple[list[E2EEvent], dict[str, str]]:
         cases = yaml.safe_load((CASES_DIR / f"{stem}.yml").read_text(encoding="utf-8"))
         for kind in ("positive", "negative"):
             for index, case in enumerate(cases[kind]):
-                fields = {str(k): str(v) for k, v in case["event"].items()}
+                case_fields = {str(k): str(v) for k, v in case["event"].items()}
+                fields = dict(case_fields)
                 if "EventID" in fields:                 # Sigma's EventID is Splunk's EventCode
                     fields["EventCode"] = fields.pop("EventID")
                 elif event_code:                        # process rules: logsource implies the code
                     fields["EventCode"] = event_code.group(1)
-                test_id = f"{run_id}|{stem}|{kind}|{index}"
+                test_id = f"{run_id}.{stem}.{kind}.{index}"   # no pipes or spaces: it travels in a text header
                 fields["TestId"] = test_id
-                events.append(E2EEvent(test_id, stem, kind, case["name"], source, fields))
+                if source in CLASSIC_SOURCES:
+                    payload = render_classic(case_fields, test_id, 1000 + len(events))
+                    sourcetype = "WinEventLog"
+                else:
+                    payload = json.dumps(fields)
+                    sourcetype = SOURCETYPE
+                events.append(E2EEvent(test_id, stem, kind, case["name"], source, sourcetype, payload, fields))
     return events, spl_by_rule
 
 
@@ -235,13 +284,13 @@ def run(client, run_id: str | None = None) -> Report:
     probes = build_probes(run_id)
 
     for event in events:
-        client.ingest(event.fields, event.source, host)
+        client.ingest(event.payload, event.source, event.sourcetype, host)
     probe_ids = {}
     for probe in probes:
         for label, source, fields, _expected in probe.events:
-            test_id = f"{run_id}|probe:{probe.name}|{label}"
+            test_id = f"{run_id}.probe-{probe.name}.{label}"
             probe_ids[(probe.name, label)] = test_id
-            client.ingest({**fields, "TestId": test_id}, source, host)
+            client.ingest(json.dumps({**fields, "TestId": test_id}), source, SOURCETYPE, host)
     total = len(events) + len(probe_ids)
     client.wait_for_count(host, total)
 
@@ -274,7 +323,9 @@ def render(report: Report) -> str:
         f"_Run on {datetime.now(timezone.utc):%Y-%m-%d} against Splunk Enterprise {report.version}. "
         "Generated by `python -m tools.e2e_splunk`._",
         "",
-        "Compiled SPL was executed in a real Splunk instance against each rule's positive and negative events.",
+        "Compiled SPL was executed in a real Splunk instance against each rule's positive and negative events. "
+        "Sysmon-style events were ingested as JSON; Windows Security events as classic WinEventLog text, "
+        "field-extracted by Splunk's built-in rules.",
         "",
         "| Rule | Positives caught | Negatives silent | Result |",
         "|---|---|---|---|",

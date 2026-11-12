@@ -61,10 +61,25 @@ Two probe queries also assert the operator-precedence rule the generated SPL sil
 
 - **Proves:** the generated SPL parses, escapes backslashes and wildcards correctly, and has the intended
   boolean logic inside a real Splunk.
-- **Does not prove:** that a production Splunk Windows or Sysmon add-on extracts the same field names. Test
-  events are JSON, so field names are exactly as the rules use them. Verify extraction against your own data.
+- **Does not prove:** that a production Sysmon add-on extracts the field names the rules use. Sysmon-style
+  test events are JSON, so those names are taken as given. Windows Security events are different: they are
+  sent as classic WinEventLog text and extracted by Splunk's own built-in rules, as in production.
 - The runner's pass/fail logic is unit-tested offline with a fake client, so harness bugs are caught
   before a container is started.
+
+### Findings from the first real Splunk run (Splunk Enterprise 10.6.1.1)
+
+- All nine Sysmon-based rules passed first time, and both operator-precedence probes passed, so the
+  parenthesis-free SPL that pySigma generates really does mean what the rules intend in Splunk.
+- **Both Windows Security rules failed, and the cause was not the test.** Splunk's built-in handling of
+  `WinEventLog*` sources ignores JSON and extracts the classic text format. Replaying realistic classic events
+  showed that Splunk names the fields `Service_Name`, `Ticket_Encryption_Type`, `Failure_Code` and
+  `SourceName`, not the Event Viewer XML names the Sigma rules use (`ServiceName`, `TicketEncryptionType`,
+  `Status`, `Provider_Name`). The queries as first compiled would never have fired on real classic-format
+  Security logs.
+- **Fix:** a field mapping for the Windows Security logsource in `pipelines/splunk_env.yml`, keeping the Sigma
+  rules portable, a regression test on the compiled SPL, and a harness that now sends classic-format events.
+  Sigma-to-SIEM translation depends on how events are rendered, which is why this check needs a real SIEM.
 
 ## Licensing
 

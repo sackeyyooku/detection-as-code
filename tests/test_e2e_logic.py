@@ -48,7 +48,7 @@ class FakeSplunk:
         self.sabotage_missed = sabotage_missed
         self.sabotage_false_alert = sabotage_false_alert
 
-    def ingest(self, fields, source, host):
+    def ingest(self, payload, source, sourcetype, host):
         self.ingested += 1
 
     def wait_for_count(self, host, expected, timeout=0):
@@ -69,7 +69,7 @@ class FakeSplunk:
                 return [{"TestId": i} for i in ids]
         for probe in self.probes:
             if probe.query == spl:
-                return [{"TestId": f"{self.run_id}|probe:{probe.name}|{label}"}
+                return [{"TestId": f"{self.run_id}.probe-{probe.name}.{label}"}
                         for label, _s, _f, expected in probe.events if expected]
         raise AssertionError(f"unexpected query: {spl}")
 
@@ -88,3 +88,16 @@ def test_runner_detects_broken_rules(mode):
     failed = [r for r in report.rules if not r.ok]
     assert [r.rule for r in failed] == [stem]
     assert "❌" in render(report)
+
+
+def test_security_events_are_rendered_as_classic_wineventlog():
+    events, _ = build_rule_events(RUN_ID)
+    security = [e for e in events if e.source == "WinEventLog:Security"]
+    assert security and all(e.sourcetype == "WinEventLog" for e in security)
+    for e in security:
+        lines = e.payload.split("\n")
+        assert "LogName=Security" in lines and f"ComputerName={e.test_id}" in lines
+        assert any(line.startswith("EventCode=") for line in lines)
+        assert "Message=Test event." in lines
+    sysmon = [e for e in events if e.source != "WinEventLog:Security"]
+    assert sysmon and all(e.sourcetype == "e2e_json" and e.payload.startswith("{") for e in sysmon)

@@ -21,3 +21,18 @@ transformations:
       - type: logsource
         category: process_access
         product: windows
+  # Windows Security events in Splunk's classic WinEventLog format use underscore-separated names
+  # extracted from the message text (verified against a real Splunk: Service_Name,
+  # Ticket_Encryption_Type, Failure_Code) and SourceName instead of the XML Provider name.
+  # Sigma rules use the Event Viewer XML names, so map them here and keep the rules portable.
+  - id: splunk_classic_security_fields
+    type: field_name_mapping
+    mapping:
+      ServiceName: Service_Name
+      TicketEncryptionType: Ticket_Encryption_Type
+      Status: Failure_Code
+      Provider_Name: SourceName
+    rule_conditions:
+      - type: logsource
+        product: windows
+        service: security
