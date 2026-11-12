@@ -3,11 +3,14 @@ id: 325efed4-a841-44df-b317-25bcc98e6a0a
 status: experimental
 description: >
     Detects processes opening a handle to lsass.exe with access rights typically used for
-    credential dumping, excluding common system and Defender sources. Requires Sysmon Event ID 10.
+    credential dumping. Only exact-path system sources and Defender are excluded: living-off-the-land
+    binaries such as powershell.exe and rundll32.exe also live in System32, so whole directories
+    must never be allow-listed. Requires Sysmon Event ID 10.
 references:
     - https://attack.mitre.org/techniques/T1003/001/
 author: George Yooku Sackey
 date: 2026-11-11
+modified: 2026-11-12
 tags:
     - attack.credential-access
     - attack.t1003.001
@@ -22,15 +25,24 @@ detection:
             - '0x1410'
             - '0x1438'
             - '0x143a'
+            - '0x1f0fff'
+            - '0x1f1fff'
+            - '0x1f2fff'
+            - '0x1f3fff'
             - '0x1fffff'
     filter_main_system:
+        SourceImage:
+            - 'C:\Windows\System32\wbem\WmiPrvSE.exe'
+            - 'C:\Windows\System32\svchost.exe'
+            - 'C:\Windows\System32\wininit.exe'
+            - 'C:\Windows\System32\csrss.exe'
+            - 'C:\Windows\System32\services.exe'
+    filter_main_defender:
         SourceImage|startswith:
-            - 'C:\Windows\System32\'
-            - 'C:\Windows\SysWOW64\'
             - 'C:\ProgramData\Microsoft\Windows Defender\Platform\'
             - 'C:\Program Files\Windows Defender\'
     condition: selection and not 1 of filter_main_*
 falsepositives:
-    - EDR / AV agents not yet allow-listed in the filter
-    - Legitimate memory-diagnostics or crash-dump tooling
+    - EDR / AV agents and backup tools not yet allow-listed by exact path
+    - Task Manager or memory-diagnostics tooling used legitimately by administrators
 level: high

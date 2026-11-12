@@ -9,12 +9,42 @@ positive:
       SourceImage: 'C:\Temp\x.exe'
       TargetImage: 'C:\Windows\System32\lsass.exe'
       GrantedAccess: '0x1410'
+  - name: PowerShell from System32 (real Invoke-Mimikatz telemetry regression)
+    event:
+      SourceImage: 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
+      TargetImage: 'C:\Windows\system32\lsass.exe'
+      GrantedAccess: '0x1010'
+  - name: rundll32 from System32 with full access (real memdump telemetry regression)
+    event:
+      SourceImage: 'C:\Windows\system32\rundll32.exe'
+      TargetImage: 'C:\Windows\system32\lsass.exe'
+      GrantedAccess: '0x1fffff'
+  - name: broader full-access mask from a network share
+    event:
+      SourceImage: '\\VBOXSVR\HTools\voice_mail.msg.exe'
+      TargetImage: 'C:\Windows\system32\lsass.exe'
+      GrantedAccess: '0x1f1fff'
+  - name: attacker binary named svchost.exe outside System32 (path spoof)
+    event:
+      SourceImage: 'C:\Temp\svchost.exe'
+      TargetImage: 'C:\Windows\System32\lsass.exe'
+      GrantedAccess: '0x1410'
 negative:
-  - name: system component (filtered)
+  - name: WMI provider host (exact-path exclusion)
     event:
       SourceImage: 'C:\Windows\System32\wbem\WmiPrvSE.exe'
       TargetImage: 'C:\Windows\System32\lsass.exe'
       GrantedAccess: '0x1410'
+  - name: genuine svchost.exe
+    event:
+      SourceImage: 'C:\Windows\system32\svchost.exe'
+      TargetImage: 'C:\Windows\system32\lsass.exe'
+      GrantedAccess: '0x1410'
+  - name: Windows Defender platform binary
+    event:
+      SourceImage: 'C:\ProgramData\Microsoft\Windows Defender\Platform\4.18.2309.6-0\MsMpEng.exe'
+      TargetImage: 'C:\Windows\system32\lsass.exe'
+      GrantedAccess: '0x1fffff'
   - name: low-privilege access mask
     event:
       SourceImage: 'C:\Temp\tool.exe'
