@@ -22,6 +22,7 @@ flowchart LR
     D --> E[Compile<br/>Splunk SPL + KQL]
     E --> F[ATT&CK coverage<br/>Navigator layer + report]
     F --> G[Artefacts<br/>savedsearches.conf, queries]
+    E -.-> H[Splunk end-to-end<br/>local, Docker]
 ```
 
 ## Current state
@@ -30,15 +31,23 @@ flowchart LR
 |---|---|
 | Original rules | 11 (Windows: process creation, LSASS access, Security log) |
 | ATT&CK coverage | 12 techniques across 7 tactics ([report](docs/coverage.md)) |
-| Automated tests | 133 (static gates, synthetic replay, real telemetry, e2e harness logic), about 2 seconds |
+| Automated tests | 136 (static gates, synthetic replay, real telemetry, e2e harness logic), about 2 seconds |
 | Real-telemetry regression set | 15 pinned captures verified by SHA-256 in CI |
 | Full sweep | all 278 public captures replayed ([report](docs/telemetry-sweep.md)) |
 | Splunk SPL compiled | 11 / 11 |
+| **Verified in a real Splunk 10.6** | **11 / 11 rules** and both operator-precedence probes ([results](docs/e2e-results.md)) |
 | KQL (Defender XDR) compiled | 8 / 11 ([matrix](docs/conversion-matrix.md)) |
 
-**A finding worth reading:** replaying real telemetry showed that my first LSASS rule allow-listed all of
-`System32`, hiding PowerShell and rundll32 credential dumping. Detection of LSASS access events in the
-dataset went from 13/28 to 23/28 after the fix. Details in [design decisions](docs/design-decisions.md).
+**Two findings worth reading**, both caught by testing against something real:
+
+1. *Real attack telemetry:* my first LSASS rule allow-listed all of `System32`, hiding PowerShell and rundll32
+   credential dumping. Detection of LSASS access events in the dataset went from 13/28 to 23/28 after the fix.
+2. *A real Splunk:* both Windows Security rules compiled cleanly and passed every offline test, yet would never
+   have fired on real Splunk data. Splunk's built-in extraction names the fields `Service_Name`,
+   `Ticket_Encryption_Type` and `Failure_Code`, not the Sigma names. A field mapping in
+   `pipelines/splunk_env.yml` fixed it, and the end-to-end run now passes.
+
+Details in [design decisions](docs/design-decisions.md).
 
 ## Quick start
 
@@ -89,10 +98,10 @@ docs/        generated coverage + conversion matrix; sweep report; design decisi
 
 ## Design decisions and limitations
 
-See [docs/design-decisions.md](docs/design-decisions.md). Highlights: tests validate rule *logic* (not yet
-backend translation against a live SIEM), Security-log field names need verifying against your own Splunk
-configuration, the Kerberoasting rule has no public capture and is validated synthetically only, and
-rules are `experimental` and untuned.
+See [docs/design-decisions.md](docs/design-decisions.md). Highlights: the Splunk end-to-end test uses classic
+WinEventLog text for Security events and JSON for Sysmon-style events, so Sysmon field names are assumed to
+match your Sysmon add-on; KQL output is not yet tested in a live Sentinel or Defender; the Kerberoasting rule
+has no public capture and is validated with synthetic events only; and rules are `experimental` and untuned.
 
 ## Roadmap
 
@@ -101,7 +110,8 @@ rules are `experimental` and untuned.
 - [x] Compile to Splunk SPL and KQL, with conversion matrix
 - [x] ATT&CK Navigator coverage layer
 - [x] Replay real telemetry from public attack captures; full-dataset sweep
-- [ ] End-to-end test against a containerised Splunk: harness built and unit-tested offline (`make e2e`); first real run and published results pending
+- [x] End-to-end test in a real Splunk (Docker): 11/11 rules, plus operator-precedence probes
+- [ ] Run the Splunk end-to-end test in CI (manual-trigger workflow first)
 - [ ] Deploy stage: push `savedsearches.conf` to Splunk via REST on merge
 - [ ] Sentinel `SecurityEvent` target; expand to 25+ rules incl. Linux and cloud
 - [ ] Pin GitHub Actions to commit SHAs; add dependency scanning

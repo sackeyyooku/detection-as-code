@@ -88,11 +88,14 @@ them from upstream at a pinned commit and verifies each file's SHA-256.
 
 ## Known gaps (unverified assumptions)
 
-- The behavioural and telemetry tests validate **rule logic** (against Sysmon-style field names), not **backend translation**. A bug in query generation, or
-  a difference between real Splunk field extraction and the Sigma field names, would not be caught yet.
-- Security-log rules assume the pySigma default source (`WinEventLog:Security`) and the field names
-  used by the rule (`ServiceName`, `TicketEncryptionType`, `Status`). Real field names depend on how your
-  Splunk Windows TA renders events (classic vs XML). **Verify against your own data** (roadmap phase 3).
+- **Splunk is verified; other targets are not.** The end-to-end run executed the compiled SPL in Splunk
+  Enterprise 10.6.1.1 (see `docs/e2e-results.md`). The KQL output is only checked for compilation, not run in
+  Sentinel or Defender.
+- **Sysmon field names are assumed.** Sysmon-style test events are JSON using the field names the rules use. A
+  production Sysmon add-on should expose the same names, but that is not verified here.
+- **Security events assume the classic text format.** If your Splunk renders Windows Security events as XML
+  (`XmlWinEventLog:Security`) the field names and source differ, and `pipelines/splunk_env.yml` needs a matching
+  mapping.
 - Three rules do not compile to KQL (Defender XDR has no Security-log or Sysmon process-access table).
 - Thresholds are untuned and rules are marked `experimental`. They are portfolio-grade starting points,
   not a drop-in production rule set.
