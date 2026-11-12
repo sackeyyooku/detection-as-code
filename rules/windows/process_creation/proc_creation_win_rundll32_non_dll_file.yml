@@ -1,0 +1,37 @@
+title: Rundll32 Loading a Non-DLL File
+id: d64c3ad0-c328-4d3c-ac02-b4455ff602cb
+status: experimental
+description: >
+    Detects rundll32.exe invoked with a payload that carries a document or data extension
+    (for example .jpg or .txt) before the export name. Malware commonly disguises a DLL this way.
+references:
+    - https://attack.mitre.org/techniques/T1218/011/
+author: George Yooku Sackey
+date: 2026-11-12
+tags:
+    - attack.defense-evasion
+    - attack.t1218.011
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection_img:
+        - Image|endswith: '\rundll32.exe'
+        - OriginalFileName: 'RUNDLL32.EXE'
+    selection_ext:
+        CommandLine|contains:
+            - '.jpg,'
+            - '.jpeg,'
+            - '.png,'
+            - '.gif,'
+            - '.txt,'
+            - '.dat,'
+            - '.tmp,'
+            - '.bin,'
+            - '.log,'
+            - '.pdf,'
+            - '.ini,'
+    condition: all of selection_*
+falsepositives:
+    - Custom internal tooling that stores a DLL under a renamed extension
+level: high

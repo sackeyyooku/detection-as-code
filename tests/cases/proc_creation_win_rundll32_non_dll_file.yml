@@ -1,0 +1,22 @@
+positive:
+  - name: real telemetry, payload disguised as a .jpg
+    event:
+      Image: 'C:\Windows\SysWOW64\rundll32.exe'
+      OriginalFileName: 'RUNDLL32.EXE'
+      CommandLine: '"C:\Windows\System32\rundll32.exe" c:\users\public\memViewData.jpg,PluginInit'
+  - name: payload disguised as a text file in Temp
+    event:
+      Image: 'C:\Windows\System32\rundll32.exe'
+      OriginalFileName: 'RUNDLL32.EXE'
+      CommandLine: 'rundll32.exe C:\Users\bob\AppData\Local\Temp\a.txt,Run'
+negative:
+  - name: control panel applet launch
+    event:
+      Image: 'C:\Windows\System32\rundll32.exe'
+      OriginalFileName: 'RUNDLL32.EXE'
+      CommandLine: 'rundll32.exe shell32.dll,Control_RunDLL desk.cpl'
+  - name: printer install via printui
+    event:
+      Image: 'C:\Windows\System32\rundll32.exe'
+      OriginalFileName: 'RUNDLL32.EXE'
+      CommandLine: 'rundll32.exe printui.dll,PrintUIEntry /in /n"\\srv\printer"'

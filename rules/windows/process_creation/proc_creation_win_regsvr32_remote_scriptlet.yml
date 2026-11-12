@@ -1,0 +1,35 @@
+title: Regsvr32 Remote Scriptlet Execution
+id: 126c5811-4028-45de-ba73-d22a51b8f47e
+status: experimental
+description: >
+    Detects regsvr32.exe loading a remote scriptlet through scrobj.dll (the "Squiblydoo" technique),
+    a signed-binary proxy execution method that bypasses application allow-listing. A renamed copy
+    is still caught through its distinctive /u /s /i:http flag pattern.
+references:
+    - https://attack.mitre.org/techniques/T1218/010/
+author: George Yooku Sackey
+date: 2026-11-12
+tags:
+    - attack.defense-evasion
+    - attack.t1218.010
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection_img:
+        - Image|endswith: '\regsvr32.exe'
+        - OriginalFileName: 'REGSVR32.EXE'
+    selection_remote:
+        CommandLine|contains:
+            - '/i:http://'
+            - '/i:https://'
+            - '/i:ftp://'
+    selection_flags:
+        CommandLine|contains|all:
+            - ' /u '
+            - ' /s '
+            - '/i:http'
+    condition: (selection_img and selection_remote) or selection_flags
+falsepositives:
+    - Very rare; legitimate installers do not pull scriptlets over HTTP
+level: high

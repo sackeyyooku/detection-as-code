@@ -1,0 +1,18 @@
+positive:
+  - name: real telemetry, MiniDump by name
+    event:
+      Image: 'C:\Windows\System32\rundll32.exe'
+      CommandLine: 'rundll32 C:\windows\system32\comsvcs.dll, MiniDump 4868 C:\Windows\System32\notepad.bin full'
+  - name: MiniDump by ordinal from a renamed binary
+    event:
+      Image: 'C:\Temp\r.exe'
+      CommandLine: 'r.exe comsvcs.dll,#24 672 C:\Temp\l.dmp full'
+negative:
+  - name: unrelated rundll32 call
+    event:
+      Image: 'C:\Windows\System32\rundll32.exe'
+      CommandLine: 'rundll32.exe shell32.dll,Control_RunDLL'
+  - name: comsvcs referenced without a dump export
+    event:
+      Image: 'C:\Windows\System32\regsvr32.exe'
+      CommandLine: 'regsvr32.exe /s comsvcs.dll'
