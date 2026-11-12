@@ -1,0 +1,16 @@
+# Throwaway Splunk for end-to-end detection tests. Local only: ports bind to 127.0.0.1.
+# The password below is a test-only default for a disposable container; override with SPLUNK_PASSWORD.
+services:
+  splunk:
+    image: ${SPLUNK_IMAGE:-splunk/splunk:latest}
+    platform: linux/amd64        # emulated on Apple Silicon: the first start takes several minutes
+    container_name: detection-e2e-splunk
+    environment:
+      SPLUNK_START_ARGS: "--accept-license"
+      SPLUNK_GENERAL_TERMS: "--accept-sgt-current-at-splunk-com"
+      SPLUNK_PASSWORD: ${SPLUNK_PASSWORD:-DetectE2E-2026}
+    ports:
+      - "127.0.0.1:8000:8000"    # web UI (handy for screenshots)
+      - "127.0.0.1:8089:8089"    # management API used by tools/e2e_splunk.py
+    volumes:
+      - ./e2e_app:/opt/splunk/etc/apps/e2e_app
