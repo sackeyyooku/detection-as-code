@@ -22,8 +22,13 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Quality gates and behavioural replay tests
+      - name: Fetch pinned real-telemetry samples (SHA-256 verified)
+        run: python -m tools.fetch_samples
+
+      - name: Quality gates, behavioural replay and real-telemetry tests
         run: python -m pytest -q
+        env:
+          REQUIRE_TELEMETRY: "1"
 
       - name: Compile rules to Splunk SPL and KQL
         run: python -m tools.convert

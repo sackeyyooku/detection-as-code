@@ -31,9 +31,35 @@ cross mark in `docs/conversion-matrix.md` rather than failing the whole build.
 - **SPL operator precedence.** In Splunk, `OR` binds tighter than implicit `AND`, so generated queries such
   as `Image=a OR OriginalFileName=b CommandLine=c` are correct, but easy to misread.
 
+## Findings from real telemetry
+
+Rules were replayed against 278 public attack captures
+([sweep report](telemetry-sweep.md)). What it exposed:
+
+- **A real blind spot in my own LSASS rule.** The first version excluded every source under
+  `C:\Windows\System32\`. PowerShell (Invoke-Mimikatz) and rundll32 memory dumpers live there, so they were
+  silently allow-listed. Only 13 of the 28 LSASS handle-access events in the dataset were flagged. The
+  rule now excludes exact paths only (and a regression case proves a fake `C:\Temp\svchost.exe` still
+  alerts), lifting it to 23 of 28. The five unflagged events are: two PPLdump events with a low access
+  mask (`0x1000`), two `services.exe` events excluded by design, and one unrelated `0x101ffb` handle.
+- **Genuine Event 1102 in 24 captures.** The dataset's authors cleared the Security log before many
+  captures, so the log-cleared rule correctly fires on them. The telemetry tests tolerate this rule
+  everywhere instead of pretending those are false positives.
+- **Unreviewed alerts fail the build.** Each sample lists the rules that must fire; any other alert fails
+  until someone reviews it. That is how the regsvr32 rule's alerts on two Atomic Red Team captures were
+  confirmed as true positives (and promoted to required detections) rather than waved through.
+- **Honest coverage limits.** No public capture exercises the Kerberoasting rule, so it is validated with
+  synthetic events only. The Office rule has a single real example (a side-loaded `WINWORD.exe` copy
+  running from `AppData`).
+
+## Licensing
+
+The samples are GPL-3.0. They are never copied into this repository; `tools/fetch_samples.py` downloads
+them from upstream at a pinned commit and verifies each file's SHA-256.
+
 ## Known gaps (unverified assumptions)
 
-- The behavioural tests validate **rule logic**, not **backend translation**. A bug in query generation, or
+- The behavioural and telemetry tests validate **rule logic** (against Sysmon-style field names), not **backend translation**. A bug in query generation, or
   a difference between real Splunk field extraction and the Sigma field names, would not be caught yet.
 - Security-log rules assume the pySigma default source (`WinEventLog:Security`) and the field names
   used by the rule (`ServiceName`, `TicketEncryptionType`, `Status`). Real field names depend on how your
