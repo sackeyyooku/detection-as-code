@@ -1,4 +1,4 @@
-.PHONY: setup test telemetry docs check clean
+.PHONY: setup test telemetry docs check e2e-up e2e e2e-down clean
 
 setup:
 	python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
@@ -17,6 +17,16 @@ docs:
 
 check: telemetry docs
 	git diff --exit-code docs/
+
+# End-to-end: run the compiled SPL inside a real Splunk (needs Docker)
+e2e-up:
+	docker compose -f e2e/docker-compose.yml up -d
+
+e2e:
+	.venv/bin/python -m tools.e2e_splunk
+
+e2e-down:
+	docker compose -f e2e/docker-compose.yml down -v
 
 clean:
 	rm -rf build .pytest_cache

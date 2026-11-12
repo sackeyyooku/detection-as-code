@@ -30,7 +30,7 @@ flowchart LR
 |---|---|
 | Original rules | 11 (Windows: process creation, LSASS access, Security log) |
 | ATT&CK coverage | 12 techniques across 7 tactics ([report](docs/coverage.md)) |
-| Automated tests | 127 (static gates, synthetic replay, real telemetry), about 2 seconds |
+| Automated tests | 133 (static gates, synthetic replay, real telemetry, e2e harness logic), about 2 seconds |
 | Real-telemetry regression set | 15 pinned captures verified by SHA-256 in CI |
 | Full sweep | all 278 public captures replayed ([report](docs/telemetry-sweep.md)) |
 | Splunk SPL compiled | 11 / 11 |
@@ -47,6 +47,9 @@ make setup       # create .venv and install pinned dependencies
 make test        # quality gates + synthetic replay (offline)
 make telemetry   # also fetch pinned public EVTX samples and replay them
 make docs        # compile rules, regenerate coverage and matrix docs
+make e2e-up      # start a throwaway Splunk in Docker (first start takes minutes)
+make e2e         # run the compiled SPL inside Splunk and write docs/e2e-results.md
+make e2e-down    # remove the container
 ls build/        # compiled SPL / KQL, savedsearches.conf, ATT&CK Navigator layer
 ```
 
@@ -78,7 +81,8 @@ negative:
 rules/       Sigma detections (original work)
 tests/       quality gates, synthetic replay, real-telemetry replay, per-rule event cases
 pipelines/   environment mapping (where logs live in your SIEM)
-tools/       compile, coverage, EVTX parsing/replay, sample fetching, dataset sweep
+tools/       compile, coverage, EVTX parsing/replay, sample fetching, dataset sweep, Splunk e2e runner
+e2e/         throwaway Dockerised Splunk used by the end-to-end test
 docs/        generated coverage + conversion matrix; sweep report; design decisions
 .github/     CI workflow
 ```
@@ -97,7 +101,7 @@ rules are `experimental` and untuned.
 - [x] Compile to Splunk SPL and KQL, with conversion matrix
 - [x] ATT&CK Navigator coverage layer
 - [x] Replay real telemetry from public attack captures; full-dataset sweep
-- [ ] End-to-end test against a containerised Splunk (ingest events, run compiled SPL, assert hits)
+- [ ] End-to-end test against a containerised Splunk: harness built and unit-tested offline (`make e2e`); first real run and published results pending
 - [ ] Deploy stage: push `savedsearches.conf` to Splunk via REST on merge
 - [ ] Sentinel `SecurityEvent` target; expand to 25+ rules incl. Linux and cloud
 - [ ] Pin GitHub Actions to commit SHAs; add dependency scanning

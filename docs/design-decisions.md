@@ -52,6 +52,20 @@ Rules were replayed against 278 public attack captures
   synthetic events only. The Office rule has a single real example (a side-loaded `WINWORD.exe` copy
   running from `AppData`).
 
+## End-to-end harness (Splunk in Docker)
+
+`make e2e` ingests every rule's positive and negative events into a disposable Splunk container and runs
+the *compiled SPL* exactly as it would be deployed. Positives must be returned and negatives must not.
+Two probe queries also assert the operator-precedence rule the generated SPL silently depends on
+(`A OR B C` means `(A OR B) AND C` in Splunk).
+
+- **Proves:** the generated SPL parses, escapes backslashes and wildcards correctly, and has the intended
+  boolean logic inside a real Splunk.
+- **Does not prove:** that a production Splunk Windows or Sysmon add-on extracts the same field names. Test
+  events are JSON, so field names are exactly as the rules use them. Verify extraction against your own data.
+- The runner's pass/fail logic is unit-tested offline with a fake client, so harness bugs are caught
+  before a container is started.
+
 ## Licensing
 
 The samples are GPL-3.0. They are never copied into this repository; `tools/fetch_samples.py` downloads
