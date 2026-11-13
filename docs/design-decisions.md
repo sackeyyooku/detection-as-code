@@ -104,5 +104,9 @@ them from upstream at a pinned commit and verifies each file's SHA-256.
 
 ATT&CK v19 (April 2026) retired the Defense Evasion tactic and split it into Stealth and Defense Impairment;
 v20 (October 2026) is current. Rules whose behaviour is about blending in (obfuscation, signed-binary proxy
-execution, indicator removal) are tagged `attack.stealth`, and the Navigator layer targets v20. Technique IDs
-used here are unchanged. Re-check mappings when a new ATT&CK release lands.
+execution) are tagged `attack.stealth`, and the Navigator layer targets v20. Technique IDs
+used here are unchanged apart from one that MITRE renumbered (below). Re-check mappings when a new ATT&CK release lands.
+
+The log-cleared rule moved with ATT&CK: from v19, Clear Windows Event Logs is T1685.005 (Disable or Modify
+Tools, under Defense Impairment), no longer T1070.001. The stale ID was found because the technique silently
+failed to highlight in the Navigator layer, which is a good reason to keep that visual check.

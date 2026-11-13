@@ -30,7 +30,7 @@ flowchart LR
 | Metric | Value |
 |---|---|
 | Original rules | 11 (Windows: process creation, LSASS access, Security log) |
-| ATT&CK coverage | 12 techniques across 7 tactics ([report](docs/coverage.md)) |
+| ATT&CK coverage | 12 techniques across 8 tactics ([report](docs/coverage.md)) |
 | Automated tests | 136 (static gates, synthetic replay, real telemetry, e2e harness logic), about 2 seconds |
 | Real-telemetry regression set | 15 pinned captures verified by SHA-256 in CI |
 | Full sweep | all 278 public captures replayed ([report](docs/telemetry-sweep.md)) |

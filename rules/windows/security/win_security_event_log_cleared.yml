@@ -5,12 +5,12 @@ description: >
     Detects clearing of the Windows Security event log (Event ID 1102), a common
     anti-forensics step after intrusion.
 references:
-    - https://attack.mitre.org/techniques/T1070/001/
+    - https://attack.mitre.org/techniques/T1685/005/
 author: George Yooku Sackey
 date: 2026-11-11
 tags:
-    - attack.stealth
-    - attack.t1070.001
+    - attack.defense-impairment
+    - attack.t1685.005
 logsource:
     product: windows
     service: security
