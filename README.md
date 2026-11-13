@@ -1,6 +1,6 @@
 # detection-as-code
 
-A CI/CD pipeline for security detections. Sigma rules are written once, **tested against hand-written
+A continuous-integration pipeline for security detections. Sigma rules are written once, **tested against hand-written
 events and real attack telemetry**, compiled to **Splunk SPL** and **KQL**, and mapped to **MITRE ATT&CK**,
 with every change gated by automated checks.
 
