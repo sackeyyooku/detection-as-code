@@ -22,7 +22,7 @@ in the repo can't silently diverge from the rules.
 **Unsupported targets are recorded, not hidden.** A rule that a backend can't express shows up as a
 cross mark in `docs/conversion-matrix.md` rather than failing the whole build.
 
-## Gotchas found while building
+## Technical lessons learned
 
 - **pySigma conversion mutates rule objects.** Reusing a parsed collection across backends leaks one
   backend's field renames into the next. `tools.common.load_collection` always re-parses.
