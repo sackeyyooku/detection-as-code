@@ -99,3 +99,10 @@ them from upstream at a pinned commit and verifies each file's SHA-256.
 - Three rules do not compile to KQL (Defender XDR has no Security-log or Sysmon process-access table).
 - Thresholds are untuned and rules are marked `experimental`. They are portfolio-grade starting points,
   not a drop-in production rule set.
+
+## ATT&CK version note
+
+ATT&CK v19 (April 2026) retired the Defense Evasion tactic and split it into Stealth and Defense Impairment;
+v20 (October 2026) is current. Rules whose behaviour is about blending in (obfuscation, signed-binary proxy
+execution, indicator removal) are tagged `attack.stealth`, and the Navigator layer targets v20. Technique IDs
+used here are unchanged. Re-check mappings when a new ATT&CK release lands.

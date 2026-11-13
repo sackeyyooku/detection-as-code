@@ -10,7 +10,7 @@ references:
 author: George Yooku Sackey
 date: 2026-11-12
 tags:
-    - attack.defense-evasion
+    - attack.stealth
     - attack.t1218.010
 logsource:
     category: process_creation
